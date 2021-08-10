@@ -1,0 +1,59 @@
+checkoutsystem.js:
+public class Checkout
+    {
+        private readonly List<Item> items = new List<Item>();
+        private readonly List<PricingRule> pricingRules = new List<PricingRule>();
+
+
+        public int CalculateTotal()
+        {
+            int total = 0;
+            var itemGroups = items.GroupBy(g => g.Name);
+
+            foreach (var itemGroup in itemGroups)
+            {
+                var ruleForGroup = pricingRules.FirstOrDefault(r => r.ItemName == itemGroup.Key);
+                if (ruleForGroup != null)
+                {
+                    var groupCount = itemGroup.Count();
+
+                    var extra = groupCount - ruleForGroup.ItemCount;
+                    if (extra < 0)
+                    {
+                        total += itemGroup.Sum(g => g.Price);
+                    }
+                    else
+                    {
+                        total += ruleForGroup.Total;
+                        total += extra*itemGroup.First()
+                                                .Price;
+                    }
+                }
+                else
+                {
+                    total += itemGroup.Sum(x => x.Price);
+                }
+            }
+            return total;
+        }
+
+        public void AddItem(Item item)
+        {
+            items.Add(item);
+        }
+
+        public void AddPricingRule(PricingRule rule)
+        {
+            if (rule == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            if (string.IsNullOrWhiteSpace(rule.ItemName))
+            {
+                throw new ArgumentException();
+            }
+
+            pricingRules.Add(rule);
+        }
+    } 
